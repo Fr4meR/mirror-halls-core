@@ -1,3 +1,5 @@
+import kotlin.random.Random
+
 /**
  * Describes the contents of a room.
  */
@@ -12,5 +14,15 @@ enum class RoomContent(val number: Int, val descriptionToRead: String, val descr
         2,
         "Ein Raum mit den bekannten Abmessungen und den vier Türen. Der Boden des Raumes ist mit einem hellblauen Dunst überzogen.",
         "Der blaue Nebel sollte die SCs sehr skeptisch machen, heilt aber letztlich alle beteiligten. Das Durchschreiten des Raumes bringt 1 LeP (illusionär), das Einatmen des Dunstes bis zu 2W6 LeP."
-    )
+    );
+
+    companion object {
+
+        private val random = Random.Default
+        private val vals = values()
+
+        fun random(): RoomContent {
+            return vals[random.nextInt(1, vals.size)]
+        }
+    }
 }
