@@ -8,9 +8,10 @@ import java.util.EnumMap
  * @author Tobias Hess
  * @since 01.10.2022
  */
-data class Room(val content: RoomContent, var notes: String? = null) {
+data class Room(val content: RoomContent) {
 
     private val connections: MutableMap<Direction, RoomConnection> = EnumMap(Direction::class.java)
+    var notes: String? = null
 
     /**
      * Connects this [Room] with the given [room] in the specified [direction] using the given [glyph].
@@ -27,5 +28,23 @@ data class Room(val content: RoomContent, var notes: String? = null) {
 
     private fun putConnection(direction: Direction, connection: RoomConnection) {
         connections[direction] = connection
+    }
+
+    /**
+     * @return The [RoomConnection] for the given direction
+     */
+    fun getConnection(direction: Direction): RoomConnection?{
+        return connections[direction]
+    }
+
+    /**
+     * @return The [Room] that is connected with this one in the specified direction
+     */
+    fun getConnectedRoom(direction: Direction): Room?{
+        return getConnection(direction)?.getOtherRoom(this)
+    }
+
+    fun hasConnectedRoom(direction: Direction): Boolean{
+        return getConnectedRoom(direction) != null
     }
 }

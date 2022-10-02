@@ -14,6 +14,7 @@ internal class LabyrinthTest{
     @Test
     fun basicTest() {
         val lab = Labyrinth()
+        lab.move(Direction.NORTH)
         lab.print()
     }
 }

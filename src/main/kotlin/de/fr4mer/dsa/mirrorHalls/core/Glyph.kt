@@ -22,12 +22,16 @@ data class Glyph(val symbol: Symbol, val color: Color) {
     /**
      * The color of the glyph.
      */
-    enum class Color(val number: Int, val rgb: Int){
-        RED(1, 0xFF0000),
-        BROWN(2, 0x8B4513),
-        BLUE(3, 0x0000FF),
-        YELLOW(4, 0xFFFF00),
-        GREEN(5, 0x00FF00),
-        PURPLE(6, 0x9400D3)
+    enum class Color(val number: Int, val sign: Char, val rgb: Int) {
+        RED(1, 'r', 0xFF0000),
+        BROWN(2, 'u', 0x8B4513),
+        BLUE(3, 'b', 0x0000FF),
+        YELLOW(4, 'y', 0xFFFF00),
+        GREEN(5, 'g', 0x00FF00),
+        PURPLE(6, 'p', 0x9400D3)
+    }
+
+    fun getGlyphString(): String {
+        return "${symbol.number}${color.sign}"
     }
 }
