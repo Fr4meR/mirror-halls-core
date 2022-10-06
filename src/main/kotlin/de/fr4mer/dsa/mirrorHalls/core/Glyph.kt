@@ -1,4 +1,5 @@
 package de.fr4mer.dsa.mirrorHalls.core
+import kotlin.random.Random
 
 /**
  * This class defines a glyph.
@@ -16,7 +17,15 @@ data class Glyph(val symbol: Symbol, val color: Color) {
         SYMBOL_3(3),
         SYMBOL_4(4),
         SYMBOL_5(5),
-        SYMBOL_6(6)
+        SYMBOL_6(6);
+
+        companion object {
+            private val vals = values()
+
+            fun random(): Symbol {
+                return vals[Random.Default.nextInt(1, vals.size)]
+            }
+        }
     }
 
     /**
@@ -28,10 +37,24 @@ data class Glyph(val symbol: Symbol, val color: Color) {
         BLUE(3, 'b', 0x0000FF),
         YELLOW(4, 'y', 0xFFFF00),
         GREEN(5, 'g', 0x00FF00),
-        PURPLE(6, 'p', 0x9400D3)
+        PURPLE(6, 'p', 0x9400D3);
+
+        companion object {
+            private val vals = values()
+
+            fun random(): Color {
+                return vals[Random.Default.nextInt(1, vals.size)]
+            }
+        }
     }
 
     fun getGlyphString(): String {
         return "${symbol.number}${color.sign}"
+    }
+
+    companion object {
+        fun random(): Glyph {
+            return Glyph(Symbol.random(), Color.random())
+        }
     }
 }

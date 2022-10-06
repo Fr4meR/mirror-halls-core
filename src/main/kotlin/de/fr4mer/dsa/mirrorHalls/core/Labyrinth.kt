@@ -1,7 +1,6 @@
 package de.fr4mer.dsa.mirrorHalls.core
 
 import RoomContent
-import java.util.LinkedList
 
 /**
  * Base class for the labyrinth of rooms.
@@ -11,16 +10,16 @@ import java.util.LinkedList
  */
 class Labyrinth {
 
-    private val rooms: MutableList<Room?> = LinkedList()
     private var width = 1
     private var height = 1
+    private var rooms = Array<Room?>(width * height) { null }
 
     private lateinit var currentRoom: Room
     private var glyphRedHerringActive: Boolean = true
 
     init {
         val startRoom = Room(RoomContent.START_ROOM)
-        rooms.add(startRoom)
+        rooms[0] = startRoom
         move(startRoom)
     }
 
@@ -32,10 +31,90 @@ class Labyrinth {
         currentRoom.getConnectedRoom(direction)?.let { move(it) }
     }
 
+    /**
+     * Moves from the current room to the specified room.
+     * @param[room] The room to move to
+     */
     fun move(room: Room) {
-        //TODO generate missing room connections of the room
+        //generate missing room connections out of the room to move to
+        for (direction in Direction.values()) {
+            if (!room.hasConnectedRoom(direction)) {
+                val newRoom = createRandomRoom()
+                room.connect(direction, newRoom, Glyph.random())
 
+                // if the space is not available...
+                var roomXY = getRoomXY(room)
+                var newRoomXY = calculateNewRoomXY(roomXY, direction)
+                var newRoomIdx = listRoomIndex(newRoomXY.first, newRoomXY.second)
+
+                if (!isRoomPositionAvailable(newRoomXY)) {
+                    // .. grow the labyrinth to make space
+                    when (direction) {
+                        Direction.NORTH -> addRoomRow(true)
+                        Direction.SOUTH -> addRoomRow(false)
+                        Direction.EAST -> addRoomColumn(false)
+                        Direction.WEST -> addRoomColumn(true)
+                    }
+
+                    //recalculate indices because they shifted
+                    roomXY = getRoomXY(room)
+                    newRoomXY = calculateNewRoomXY(roomXY, direction)
+                    newRoomIdx = listRoomIndex(newRoomXY.first, newRoomXY.second)
+                }
+                rooms[newRoomIdx] = newRoom
+            }
+        }
         currentRoom = room
+    }
+
+    private fun calculateNewRoomXY(roomXY: Pair<Int, Int>, direction: Direction): Pair<Int, Int>{
+        return when (direction) {
+            Direction.NORTH -> Pair(roomXY.first, roomXY.second - 1)
+            Direction.EAST -> Pair(roomXY.first + 1, roomXY.second)
+            Direction.SOUTH -> Pair(roomXY.first, roomXY.second + 1)
+            Direction.WEST -> Pair(roomXY.first - 1, roomXY.second)
+        }
+    }
+
+    private fun isRoomPositionAvailable(roomXY: Pair<Int, Int>): Boolean {
+        return roomXY.first in 0 until width && roomXY.second in 0 until height
+    }
+
+    /**
+     * Adds a row of possible rooms to the bottom of the current grid.
+     * The new room spaces will be initialized with null values.
+     * @param[shift]    If true all already contained rooms will get shifted one y coordinate down,
+     *                  if false the contained rooms will keep their indices.
+     */
+    private fun addRoomRow(shift: Boolean) {
+        height += 1
+
+        val newRooms = Array<Room?>(width * height) { null }
+        for (idx in rooms.indices) {
+            val newIdx = if (shift) idx + width else idx
+            newRooms[newIdx] = rooms[idx]
+        }
+        rooms = newRooms
+    }
+
+    /**
+     * Adds a column of possible rooms to the right side of the current grid.
+     * The new room spaces will be initialized with null values.
+     * @param[shift]    If true all already contained rooms will get shifted one x coordinate right,
+     *                  if false the contained rooms will keep their positions.
+     */
+    private fun addRoomColumn(shift: Boolean) {
+        width += 1
+
+        val newRooms = Array<Room?>(width * height) { null }
+        for (idx in rooms.indices) {
+            var newIdx = idx + (idx / (width - 1))
+            if (shift) {
+                newIdx++
+            }
+            newRooms[newIdx] = rooms[idx]
+        }
+        rooms = newRooms
     }
 
     /**
@@ -48,8 +127,16 @@ class Labyrinth {
     }
 
     fun getRoom(x: Int, y: Int): Room? {
-        val idx = roomIndex(x, y)
+        val idx = listRoomIndex(x, y)
         return if (idx < rooms.size) rooms[idx] else null
+    }
+
+    private fun getRoomXY(room: Room): Pair<Int, Int> {
+        val roomIndex = rooms.indexOf(room)
+        if (roomIndex >= 0) {
+            return Pair(roomIndex % width, roomIndex / width)
+        }
+        throw java.lang.IllegalArgumentException("The specified room is not contained in the labyrinth")
     }
 
     /**
@@ -58,7 +145,7 @@ class Labyrinth {
      * @param[y] The y position of the room
      * @return The index of the room in the [rooms] list.
      */
-    private fun roomIndex(x: Int, y: Int): Int {
+    private fun listRoomIndex(x: Int, y: Int): Int {
         return y * width + x
     }
 
@@ -71,16 +158,16 @@ class Labyrinth {
      */
     fun print() {
         for (y in 0 until height) {
-            val first = roomIndex(0, y)
+            val first = listRoomIndex(0, y)
             val last = first + width
-            printRoomsRow(rooms.subList(first, last))
+            printRoomsRow(rooms.copyOfRange(first, last))
         }
     }
 
     /**
      * Prints the given list of rooms in one line to the console.
      */
-    private fun printRoomsRow(rooms: List<Room?>) {
+    private fun printRoomsRow(rooms: Array<Room?>) {
         var topRow = ""
         var fillerRow = ""
         var middleRow = ""
