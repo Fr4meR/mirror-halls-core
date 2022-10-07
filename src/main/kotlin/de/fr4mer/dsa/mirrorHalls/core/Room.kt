@@ -47,4 +47,26 @@ data class Room(val content: RoomContent) {
     fun hasConnectedRoom(direction: Direction): Boolean{
         return getConnectedRoom(direction) != null
     }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as Room
+
+        if (content != other.content) return false
+        if (connections != other.connections) return false
+        if (notes != other.notes) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = content.hashCode()
+        result = 31 * result + connections.hashCode()
+        result = 31 * result + (notes?.hashCode() ?: 0)
+        return result
+    }
+
+
 }
